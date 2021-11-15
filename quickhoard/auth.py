@@ -28,11 +28,13 @@ def register():
                                  (email, generate_password_hash(password)))
             except pymysql.err.IntegrityError:
                 error = 'Email is already registered.'
-            else:
-                session.clear()
-                session['user_id'] = user_id
+            finally:
+                database.close()
 
-                return redirect(url_for('index'))
+            session.clear()
+            session['user_id'] = user_id
+
+            return redirect(url_for('index'))
 
         flash(error, 'alert-danger')
 
@@ -50,6 +52,8 @@ def login():
 
         result = database.query("SELECT id, email, password FROM user WHERE email = %s;", email)
         user = result.fetchone()
+
+        database.close()
 
         error = None
 
