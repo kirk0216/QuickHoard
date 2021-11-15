@@ -21,16 +21,18 @@ def register():
             error = 'Email and password are required.'
 
         if error is None:
+            user_id = None
+
             try:
-                database.execute("INSERT INTO user (`email`, `password`) VALUES (%s, %s)",
+                user_id = database.insert("INSERT INTO user (`email`, `password`) VALUES (%s, %s)",
                                  (email, generate_password_hash(password)))
-                database.commit()
             except pymysql.err.IntegrityError:
                 error = 'Email is already registered.'
             else:
-                flash('Registration successful! Please login.', 'alert-success')
+                session.clear()
+                session['user_id'] = user_id
 
-                return redirect(url_for('auth.login'))
+                return redirect(url_for('index'))
 
         flash(error, 'alert-danger')
 
