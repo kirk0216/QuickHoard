@@ -1,4 +1,6 @@
-from flask import Blueprint, request, render_template, session, redirect, url_for
+import pymysql.err
+from flask import Blueprint, request, render_template, session, redirect, url_for, flash
+from werkzeug.security import check_password_hash, generate_password_hash
 from quickhoard.db import Database
 
 bp = Blueprint('auth', __name__)
@@ -19,8 +21,18 @@ def register():
             error = 'Email and password are required.'
 
         if error is None:
-            database.execute("INSERT INTO user (`email`, `password`) VALUES (%s, %s)", (email, password))
-            database.commit()
+            try:
+                database.execute("INSERT INTO user (`email`, `password`) VALUES (%s, %s)",
+                                 (email, generate_password_hash(password)))
+                database.commit()
+            except pymysql.err.IntegrityError:
+                error = 'Email is already registered.'
+            else:
+                flash('Registration successful! Please login.', 'alert-success')
+
+                return redirect(url_for('auth.login'))
+
+        flash(error, 'alert-danger')
 
     return render_template('index.html')
 
@@ -39,13 +51,16 @@ def login():
 
         error = None
 
-        if user is None:
-            error = 'Invalid login attempt.'
+        if user is None or not check_password_hash(user['password'], password):
+            error = 'Invalid credentials. Please try again.'
 
         if error is None:
             session.clear()
             session['user_id'] = user['id']
+
             return redirect(url_for('index'))
+
+        flash(error, 'alert-danger')
 
     return render_template('index.html')
 
