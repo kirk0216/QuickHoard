@@ -51,19 +51,31 @@
                 <tbody>
                     <tr class="table-success">
                         <th>Income</th>
-                        <td>$0.00</td>
+                        {% if budget %}
+                            <td>${{ budget[0]['Income'] }}</td>
+                        {% else %}
+                            <td>$0.00</td>
+                        {% endif %}
                     </tr>
                     
                     <tr class="table-danger">
                         <th>Expenses</th>
-                        <td>$0.00</td>
+                        {% if budget %}
+                            <td>${{ budget[0]['Expense'] }}</td>
+                        {% else %}
+                            <td>$0.00</td>
+                        {% endif %}
                     </tr>
                 </tbody>
                 
                 <tfoot>
                     <tr class="table-secondary">
                         <th>Balance</th>
-                        <td>$0.00</td>
+                        {% if budget %}
+                            <td>${{ budget[0]['Income'] - budget[0]['Expense'] }}</td>
+                        {% else %}
+                            <td>$0.00</td>
+                        {% endif %}
                     </tr>
                 </tfoot>
             </table>
@@ -73,26 +85,23 @@
                 <thead>
                     <tr class="table-primary">
                         <th>Category</th>
-                        <th>Target</th>
-                        <th>Current</th>
+                        <th>Goal</th>
+                        <th>Spent</th>
                         <th>Remaining</th>
                     </tr>
                 </thead>
                 
                 <tbody>
-                    <tr>
-                        <td>Restaurants</td>
-                        <td>$0.00</td>
-                        <td>$0.00</td>
-                        <td>$0.00</td>
-                    </tr>
-                    
-                    <tr>
-                        <td>Movies</td>
-                        <td>$0.00</td>
-                        <td>$0.00</td>
-                        <td>$0.00</td>
-                    </tr>
+                    {% if budget %}
+                        {% for category in budget %}
+                            <tr>
+                                <td>{{ category['Category'] }}</td>
+                                <td>${{ category['Goal'] }}</td>
+                                <td>${{ category['Spent']|default('0.00', True) }}</td>
+                                <td>${{ category['Remaining']|default(category['Goal'], True) }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
                 </tbody>
             </table>
             
