@@ -48,13 +48,13 @@
                 {% endif %}
             {% endwith %}
 
-            <h1>Overview</h1>
+            <h1>{{ budget_month }}</h1>
             <table class="table table-bordered mb-3">
                 <tbody>
                     <tr class="table-success">
                         <th>Income</th>
                         {% if budget %}
-                            <td>${{ budget[0]['Income'] }}</td>
+                            <td>${{ budget[0]['income'] }}</td>
                         {% else %}
                             <td>$0.00</td>
                         {% endif %}
@@ -63,7 +63,7 @@
                     <tr class="table-danger">
                         <th>Expenses</th>
                         {% if budget %}
-                            <td>${{ budget[0]['Expense'] }}</td>
+                            <td>${{ budget[0]['expense'] }}</td>
                         {% else %}
                             <td>$0.00</td>
                         {% endif %}
@@ -74,7 +74,7 @@
                     <tr class="table-secondary">
                         <th>Balance</th>
                         {% if budget %}
-                            <td>${{ budget[0]['Income'] - budget[0]['Expense'] }}</td>
+                            <td>${{ budget[0]['income'] - budget[0]['expense'] }}</td>
                         {% else %}
                             <td>$0.00</td>
                         {% endif %}
@@ -97,10 +97,10 @@
                     {% if budget %}
                         {% for category in budget %}
                             <tr>
-                                <td>{{ category['Category'] }}</td>
-                                <td>${{ category['Goal'] }}</td>
-                                <td>${{ category['Spent']|default('0.00', True) }}</td>
-                                {% with remaining = category['Remaining']|default(category['Goal'], True) %}
+                                <td>{{ category['name'] }}</td>
+                                <td>${{ category['goal'] }}</td>
+                                <td>${{ category['spent']|default('0.00', True) }}</td>
+                                {% with remaining = category['remaining']|default(category['goal'], True) %}
                                     <td>${{ remaining }}
                                     {% if remaining < 0 %}
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-diamond-fill text-danger float-end" viewBox="0 0 16 16">
@@ -115,8 +115,6 @@
                 </tbody>
             </table>
 
-            {% if budget %}
-            {% with category = budget[0] %}
             <h1>Add Category</h1>
             <div class="container-fluid">
                 <form method="POST" action="/category/add">
@@ -133,7 +131,6 @@
                         </div>
 
                         <div class="col-1 d-flex justify-content-center">
-                            <input type="hidden" id="budget_id" name="budget_id" value="{{ category['Budget_Id'] }}">
                             <button type="submit" class="btn btn-primary" aria-label="Add Transaction">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
                                   <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/>
@@ -143,8 +140,6 @@
                     </div>
                 </form>
             </div>
-            {% endwith %}
-            {% endif %}
         </div>
     </body>
 </html>

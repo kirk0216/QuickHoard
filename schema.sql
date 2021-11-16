@@ -5,13 +5,6 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
 -- -----------------------------------------------------
--- Schema mydb
--- -----------------------------------------------------
--- -----------------------------------------------------
--- Schema qh
--- -----------------------------------------------------
-
--- -----------------------------------------------------
 -- Schema qh
 -- -----------------------------------------------------
 CREATE SCHEMA IF NOT EXISTS `qh` DEFAULT CHARACTER SET utf8 ;
@@ -21,27 +14,11 @@ USE `qh` ;
 -- Table `qh`.`user`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `qh`.`user` (
-  `Id` INT NOT NULL AUTO_INCREMENT,
-  `Email` VARCHAR(50) NOT NULL,
-  `Password` VARCHAR(102) NOT NULL,
-  PRIMARY KEY (`Id`),
-  UNIQUE INDEX `Email_UNIQUE` (`Email` ASC) VISIBLE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb3;
-
-
--- -----------------------------------------------------
--- Table `qh`.`budget`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `qh`.`budget` (
-  `Id` INT NOT NULL AUTO_INCREMENT,
-  `Name` VARCHAR(50) NOT NULL,
-  `User_Id` INT NOT NULL,
-  PRIMARY KEY (`Id`),
-  INDEX `fk_Budget_User_idx` (`User_Id` ASC) VISIBLE,
-  CONSTRAINT `fk_Budget_User`
-    FOREIGN KEY (`User_Id`)
-    REFERENCES `qh`.`user` (`Id`))
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `email` VARCHAR(50) NOT NULL,
+  `password` VARCHAR(102) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `Email_UNIQUE` (`email` ASC) VISIBLE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
@@ -50,15 +27,16 @@ DEFAULT CHARACTER SET = utf8mb3;
 -- Table `qh`.`category`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `qh`.`category` (
-  `Id` INT NOT NULL AUTO_INCREMENT,
-  `Name` VARCHAR(50) NOT NULL,
-  `Goal` DECIMAL(10,2) NOT NULL,
-  `Budget_Id` INT NOT NULL,
-  PRIMARY KEY (`Id`),
-  INDEX `fk_Category_Budget1_idx` (`Budget_Id` ASC) VISIBLE,
-  CONSTRAINT `fk_Category_Budget1`
-    FOREIGN KEY (`Budget_Id`)
-    REFERENCES `qh`.`budget` (`Id`))
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(50) NOT NULL,
+  `user_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_category_user1_idx` (`user_id` ASC) VISIBLE,
+  CONSTRAINT `fk_category_user1`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `qh`.`user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
@@ -67,18 +45,37 @@ DEFAULT CHARACTER SET = utf8mb3;
 -- Table `qh`.`transaction`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `qh`.`transaction` (
-  `Id` INT NOT NULL AUTO_INCREMENT,
-  `Recipient` VARCHAR(45) NOT NULL,
-  `Date` DATE NOT NULL,
-  `Amount` DECIMAL(10,2) NOT NULL,
-  `Category_Id` INT NOT NULL,
-  PRIMARY KEY (`Id`),
-  INDEX `fk_Transaction_Category1_idx` (`Category_Id` ASC) VISIBLE,
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `recipient` VARCHAR(45) NOT NULL,
+  `date` DATE NOT NULL,
+  `amount` DECIMAL(10,2) NOT NULL,
+  `category_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_Transaction_Category1_idx` (`category_id` ASC) VISIBLE,
   CONSTRAINT `fk_Transaction_Category1`
-    FOREIGN KEY (`Category_Id`)
-    REFERENCES `qh`.`category` (`Id`))
+    FOREIGN KEY (`category_id`)
+    REFERENCES `qh`.`category` (`id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
+
+
+-- -----------------------------------------------------
+-- Table `qh`.`category_goal`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `qh`.`category_goal` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `goal` DECIMAL(10,2) NOT NULL,
+  `year` INT NOT NULL,
+  `month` INT NOT NULL,
+  `category_id` INT NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `fk_table1_category1_idx` (`category_id` ASC) VISIBLE,
+  CONSTRAINT `fk_table1_category1`
+    FOREIGN KEY (`category_id`)
+    REFERENCES `qh`.`category` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
