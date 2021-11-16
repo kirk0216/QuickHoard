@@ -5,6 +5,54 @@ from datetime import date
 bp = Blueprint('budget', __name__)
 
 
+class Budget:
+    income = None
+    expense = None
+    categories = []
+
+    def __init__(self, year, month):
+        self.year = year
+
+        from calendar import month_name
+        self.month = month_name[month]
+
+    def parse(self, result):
+        if result is None:
+            return
+
+        self.categories.clear()
+
+        for row in result:
+            if self.income is None:
+                self.income = row['income']
+
+            if self.expense is None:
+                self.expense = row['expense']
+
+            category = Category(row['name'], row['goal'], row['spent'], row['remaining'])
+            self.categories.append(category)
+
+
+class Category:
+    def __init__(self, name, amount, spent=None, remaining=None):
+        self.name = name or None
+        self.amount = amount or '0.00'
+        self.spent = spent
+        self.remaining = remaining
+
+    def is_valid(self):
+        error = None
+
+        if self.name is None:
+            error = 'Please enter a name for your category.'
+        elif not isinstance(self.amount, float):
+            error = 'Category goal must be a number.'
+        elif float(self.amount) < 0:
+            error = 'Category goal must be a positive number.'
+
+        return error is None, error
+
+
 @bp.route('/')
 def index():
     user_id = session.get('user_id')
@@ -29,13 +77,13 @@ def index():
     )
 
     cursor = database.query(sql, user_id)
-    budget = cursor.fetchall()
+
+    budget = Budget(date.today().year, date.today().month)
+    budget.parse(cursor.fetchall())
 
     database.close()
 
-    current_date = date.today()
-
-    return render_template('dashboard.html', budget=budget, budget_month=current_date.strftime('%B %Y'))
+    return render_template('dashboard.html', budget=budget)
 
 
 @bp.route('/category/add', methods=('GET', 'POST'))
@@ -46,29 +94,23 @@ def add_category():
         return redirect(url_for('auth.login'))
 
     if request.method == 'POST':
-        name = request.form['name'] or None
-        amount = request.form['amount'] or None
+        category = Category(request.form['name'], request.form['amount'])
 
-        error = None
+        valid, error = category.is_valid()
 
-        if name is None:
-            error = 'Please enter a name for your category.'
-        else:
-            if amount is None:
-                amount = '0.00'
-
+        if valid:
             database = Database()
             database.open()
 
             sql = 'INSERT INTO category (name, user_id) VALUES (%s, %s);'
-            category_id = database.insert(sql, (name, user_id))
+            category_id = database.insert(sql, (category.name, user_id))
 
             sql = 'INSERT INTO category_goal (goal, year, month, category_id) VALUES (%s, YEAR(CURDATE()), MONTH(CURDATE()), %s);'
-            database.insert(sql, (amount, category_id))
+            database.insert(sql, (category.amount, category_id))
 
             database.close()
 
-            flash(f'Category {name} added!', 'alert-success')
+            flash(f'Category {category.name} added!', 'alert-success')
 
     if error is not None:
         flash(error, 'alert-danger')

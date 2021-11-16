@@ -6,35 +6,54 @@ from quickhoard.db import Database
 bp = Blueprint('auth', __name__)
 
 
+class User:
+    def __init__(self, email=None, password=None):
+        self.id = None
+        self.email = email
+        self.password = password
+
+    def parse(self, result):
+        if result is None:
+            return
+
+        self.id = result['id']
+        self.email = result['email']
+        self.password = result['password']
+
+    def is_valid(self):
+        error = None
+
+        if not self.email or not self.password:
+            error = 'Email and password are required.'
+        if len(self.password) < 8:
+            error = 'Password must be at least 8 characters long.'
+
+        return error is None, error
+
+
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        user = User(request.form['email'], request.form['password'])
 
         database = Database()
         database.open()
 
-        error = None
+        valid, error = user.is_valid()
 
-        if not email or not password:
-            error = 'Email and password are required.'
-
-        if error is None:
-            user_id = None
-
+        if valid is None:
             try:
                 user_id = database.insert("INSERT INTO user (`email`, `password`) VALUES (%s, %s)",
-                                 (email, generate_password_hash(password)))
+                                 (user.email, generate_password_hash(user.password)))
             except pymysql.err.IntegrityError:
                 error = 'Email is already registered.'
+            else:
+                session.clear()
+                session['user_id'] = user_id
+
+                return redirect(url_for('index'))
             finally:
                 database.close()
-
-            session.clear()
-            session['user_id'] = user_id
-
-            return redirect(url_for('index'))
 
         flash(error, 'alert-danger')
 
@@ -51,18 +70,20 @@ def login():
         database.open()
 
         result = database.query("SELECT id, email, password FROM user WHERE email = %s;", email)
-        user = result.fetchone()
+
+        user = User()
+        user.parse(result.fetchone())
 
         database.close()
 
         error = None
 
-        if user is None or not check_password_hash(user['password'], password):
+        if user is None or not check_password_hash(user.password or '', password):
             error = 'Invalid credentials. Please try again.'
 
         if error is None:
             session.clear()
-            session['user_id'] = user['id']
+            session['user_id'] = user.id
 
             return redirect(url_for('index'))
 

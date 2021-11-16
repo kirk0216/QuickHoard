@@ -48,13 +48,13 @@
                 {% endif %}
             {% endwith %}
 
-            <h1>{{ budget_month }}</h1>
+            <h1>{{ budget.month }} {{ budget.year }}</h1>
             <table class="table table-bordered mb-3">
                 <tbody>
                     <tr class="table-success">
                         <th>Income</th>
                         {% if budget %}
-                            <td>${{ budget[0]['income'] }}</td>
+                            <td>${{ budget.income }}</td>
                         {% else %}
                             <td>$0.00</td>
                         {% endif %}
@@ -63,7 +63,7 @@
                     <tr class="table-danger">
                         <th>Expenses</th>
                         {% if budget %}
-                            <td>${{ budget[0]['expense'] }}</td>
+                            <td>${{ budget.expense }}</td>
                         {% else %}
                             <td>$0.00</td>
                         {% endif %}
@@ -74,7 +74,7 @@
                     <tr class="table-secondary">
                         <th>Balance</th>
                         {% if budget %}
-                            <td>${{ budget[0]['income'] - budget[0]['expense'] }}</td>
+                            <td>${{ budget.income - budget.expense }}</td>
                         {% else %}
                             <td>$0.00</td>
                         {% endif %}
@@ -95,20 +95,18 @@
                 
                 <tbody>
                     {% if budget %}
-                        {% for category in budget %}
+                        {% for category in budget.categories %}
                             <tr>
-                                <td>{{ category['name'] }}</td>
-                                <td>${{ category['goal'] }}</td>
-                                <td>${{ category['spent']|default('0.00', True) }}</td>
-                                {% with remaining = category['remaining']|default(category['goal'], True) %}
-                                    <td>${{ remaining }}
-                                    {% if remaining < 0 %}
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-diamond-fill text-danger float-end" viewBox="0 0 16 16">
-                                          <path d="M9.05.435c-.58-.58-1.52-.58-2.1 0L.436 6.95c-.58.58-.58 1.519 0 2.098l6.516 6.516c.58.58 1.519.58 2.098 0l6.516-6.516c.58-.58.58-1.519 0-2.098L9.05.435zM8 4c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995A.905.905 0 0 1 8 4zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
-                                        </svg>
-                                    {% endif %}
-                                    </td>
-                                {% endwith %}
+                                <td>{{ category.name }}</td>
+                                <td>${{ category.amount }}</td>
+                                <td>${{ category.spent|default('0.00', True) }}</td>
+                                <td>${{ category.remaining }}
+                                {% if category.remaining < 0 %}
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-diamond-fill text-danger float-end" viewBox="0 0 16 16">
+                                      <path d="M9.05.435c-.58-.58-1.52-.58-2.1 0L.436 6.95c-.58.58-.58 1.519 0 2.098l6.516 6.516c.58.58 1.519.58 2.098 0l6.516-6.516c.58-.58.58-1.519 0-2.098L9.05.435zM8 4c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995A.905.905 0 0 1 8 4zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                                    </svg>
+                                {% endif %}
+                                </td>
                             </tr>
                         {% endfor %}
                     {% endif %}
