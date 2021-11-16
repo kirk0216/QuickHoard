@@ -86,7 +86,7 @@
                 <thead>
                     <tr class="table-primary">
                         <th>Category</th>
-                        <th>Allotted</th>
+                        <th>Goal</th>
                         <th>Spent</th>
                         <th>Remaining</th>
                     </tr>
@@ -97,7 +97,7 @@
                         {% for category in budget.categories %}
                             <tr>
                                 <td><a href="{{ url_for('budget.view_category', category_id=category.id) }}">{{ category.name }}</a></td>
-                                <td>${{ category.amount }}</td>
+                                <td>${{ category.goal }}</td>
                                 <td>${{ category.spent|default('0.00', True) }}</td>
                                 <td>${{ category.remaining }}
                                 {% if category.remaining < 0 %}

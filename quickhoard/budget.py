@@ -36,10 +36,10 @@ class Budget:
 
 
 class Category:
-    def __init__(self, id=None, name=None, amount=None):
+    def __init__(self, id=None, name=None, goal=None):
         self.id = id
         self.name = name or None
-        self.amount = amount or '0.00'
+        self.goal = goal or '0.00'
         self.spent = None
         self.remaining = None
 
@@ -48,9 +48,9 @@ class Category:
 
         if self.name is None:
             error = 'Please enter a name for your category.'
-        elif not self.amount.isnumeric():
+        elif not self.goal.isnumeric():
             error = 'Category goal must be a number.'
-        elif float(self.amount) < 0:
+        elif float(self.goal) < 0:
             error = 'Category goal must be a positive number.'
 
         return error is None, error
@@ -65,8 +65,8 @@ class Category:
         if 'name' in result:
             self.name = result['name']
 
-        if 'amount' in result:
-            self.amount = result['amount']
+        if 'goal' in result:
+            self.goal = result['goal']
 
         if 'spent' in result:
             self.spent = result['spent']
@@ -86,7 +86,7 @@ def index():
     database.open()
 
     sql = (
-        'SELECT c.id, c.name, cg.goal AS amount, '
+        'SELECT c.id, c.name, cg.goal, '
         '	COALESCE(ABS(SUM(t.amount)), 0) AS spent, '
         '   COALESCE(cg.goal - ABS(SUM(t.amount)), cg.goal) AS remaining, '
         '	(SELECT COALESCE(ABS(SUM(amount)), 0) FROM `transaction` WHERE Amount < 0) AS expense, '
@@ -146,15 +146,17 @@ def view_category(category_id):
     database.open()
 
     if request.method == 'POST':
-        category = Category(request.form['id'], request.form['name'])
-
-        print(request.form['id'])
-        print(request.form['name'])
-        print(category.id)
-        print(category.name)
+        category = Category()
+        category.parse(request.form)
 
         sql = 'UPDATE category SET name = %s WHERE id = %s;'
         database.execute(sql, (category.name, category.id))
+
+        print(request.form['goal_id'])
+        print(category.goal)
+
+        sql = 'UPDATE category_goal SET goal = %s WHERE id = %s;'
+        database.execute(sql, (category.goal, request.form['goal_id']))
         database.commit()
 
         flash('Saved changes!', 'alert-success')
@@ -162,14 +164,21 @@ def view_category(category_id):
 
         return redirect(url_for('budget.view_category', category_id=category.id))
 
-    sql = "SELECT * FROM category WHERE id = %s;"
-    result = database.query(sql, category_id)
+    sql = (
+        'SELECT c.id, c.name, cg.id AS goal_id, cg.goal FROM category c '
+        'LEFT JOIN category_goal cg ON (cg.category_id = c.id AND cg.year = YEAR(CURDATE()) AND cg.month = MONTH(CURDATE())) '
+        'WHERE c.id = %s;'
+    )
+
+    cursor = database.query(sql, category_id)
+    result = cursor.fetchone()
 
     category = Category()
-    category.parse(result.fetchone())
+    category.parse(result)
     database.close()
 
-    return render_template('category.html', category=category)
+    return render_template('category.html', category=category, goal_id=result['goal_id'])
+
 
 @bp.route('/category/<int:category_id>/delete', methods=['POST'])
 def delete_category(category_id):
