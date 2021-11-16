@@ -29,28 +29,50 @@ class Budget:
             if self.expense is None:
                 self.expense = row['expense']
 
-            category = Category(row['name'], row['goal'], row['spent'], row['remaining'])
+            category = Category()
+            category.parse(row)
+
             self.categories.append(category)
 
 
 class Category:
-    def __init__(self, name, amount, spent=None, remaining=None):
+    def __init__(self, id=None, name=None, amount=None):
+        self.id = id
         self.name = name or None
         self.amount = amount or '0.00'
-        self.spent = spent
-        self.remaining = remaining
+        self.spent = None
+        self.remaining = None
 
     def is_valid(self):
         error = None
 
         if self.name is None:
             error = 'Please enter a name for your category.'
-        elif not isinstance(self.amount, float):
+        elif not self.amount.isnumeric():
             error = 'Category goal must be a number.'
         elif float(self.amount) < 0:
             error = 'Category goal must be a positive number.'
 
         return error is None, error
+
+    def parse(self, result):
+        if result is None:
+            return
+
+        if 'id' in result:
+            self.id = result['id']
+
+        if 'name' in result:
+            self.name = result['name']
+
+        if 'amount' in result:
+            self.amount = result['amount']
+
+        if 'spent' in result:
+            self.spent = result['spent']
+
+        if 'remaining' in result:
+            self.remaining = result['remaining']
 
 
 @bp.route('/')
@@ -64,7 +86,7 @@ def index():
     database.open()
 
     sql = (
-        'SELECT c.name, cg.goal, '
+        'SELECT c.id, c.name, cg.goal AS amount, '
         '	COALESCE(ABS(SUM(t.amount)), 0) AS spent, '
         '   COALESCE(cg.goal - ABS(SUM(t.amount)), cg.goal) AS remaining, '
         '	(SELECT COALESCE(ABS(SUM(amount)), 0) FROM `transaction` WHERE Amount < 0) AS expense, '
@@ -94,7 +116,7 @@ def add_category():
         return redirect(url_for('auth.login'))
 
     if request.method == 'POST':
-        category = Category(request.form['name'], request.form['amount'])
+        category = Category(None, request.form['name'], request.form['amount'])
 
         valid, error = category.is_valid()
 
@@ -114,5 +136,57 @@ def add_category():
 
     if error is not None:
         flash(error, 'alert-danger')
+
+    return redirect(url_for('index'))
+
+
+@bp.route('/category/<int:category_id>', methods=('GET', 'POST'))
+def view_category(category_id):
+    database = Database()
+    database.open()
+
+    if request.method == 'POST':
+        category = Category(request.form['id'], request.form['name'])
+
+        print(request.form['id'])
+        print(request.form['name'])
+        print(category.id)
+        print(category.name)
+
+        sql = 'UPDATE category SET name = %s WHERE id = %s;'
+        database.execute(sql, (category.name, category.id))
+        database.commit()
+
+        flash('Saved changes!', 'alert-success')
+        database.close()
+
+        return redirect(url_for('budget.view_category', category_id=category.id))
+
+    sql = "SELECT * FROM category WHERE id = %s;"
+    result = database.query(sql, category_id)
+
+    category = Category()
+    category.parse(result.fetchone())
+    database.close()
+
+    return render_template('category.html', category=category)
+
+@bp.route('/category/<int:category_id>/delete', methods=['POST'])
+def delete_category(category_id):
+    user_id = session.get('user_id')
+
+    if user_id is None:
+        return redirect(url_for('auth.login'))
+
+    database = Database()
+    database.open()
+
+    sql = "DELETE FROM category WHERE id = %s;"
+    database.execute(sql, category_id)
+    database.commit()
+
+    database.close()
+
+    flash(f'Deleted category.', 'alert-info')
 
     return redirect(url_for('index'))

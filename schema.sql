@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `qh`.`category_goal` (
   CONSTRAINT `fk_table1_category1`
     FOREIGN KEY (`category_id`)
     REFERENCES `qh`.`category` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
