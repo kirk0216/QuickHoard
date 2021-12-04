@@ -89,8 +89,8 @@ def index():
         'SELECT c.id, c.name, cg.goal, '
         '	COALESCE(ABS(SUM(t.amount)), 0) AS spent, '
         '   COALESCE(cg.goal - ABS(SUM(t.amount)), cg.goal) AS remaining, '
-        '	(SELECT COALESCE(ABS(SUM(amount)), 0) FROM `transaction` WHERE Amount < 0) AS expense, '
-        '   (SELECT COALESCE(ABS(SUM(amount)), 0) FROM `transaction` WHERE Amount > 0) AS income '
+        '	(SELECT COALESCE(ABS(SUM(amount)), 0) FROM `transaction` WHERE Amount < 0 AND category_id = c.id) AS expense, '
+        '   (SELECT COALESCE(ABS(SUM(amount)), 0) FROM `transaction` WHERE Amount > 0 AND category_id = c.id) AS income '
         'FROM category c '
         'LEFT JOIN category_goal cg ON cg.category_id = c.id '
         'LEFT JOIN `transaction` t ON (t.category_Id = c.id AND MONTH(t.date) = cg.month) '
@@ -128,7 +128,7 @@ def add_category():
             category_id = database.insert(sql, (category.name, user_id))
 
             sql = 'INSERT INTO category_goal (goal, year, month, category_id) VALUES (%s, YEAR(CURDATE()), MONTH(CURDATE()), %s);'
-            database.insert(sql, (category.amount, category_id))
+            database.insert(sql, (category.goal, category_id))
 
             database.close()
 
@@ -151,9 +151,6 @@ def view_category(category_id):
 
         sql = 'UPDATE category SET name = %s WHERE id = %s;'
         database.execute(sql, (category.name, category.id))
-
-        print(request.form['goal_id'])
-        print(category.goal)
 
         sql = 'UPDATE category_goal SET goal = %s WHERE id = %s;'
         database.execute(sql, (category.goal, request.form['goal_id']))

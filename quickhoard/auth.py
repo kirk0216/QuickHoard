@@ -41,7 +41,7 @@ def register():
 
         valid, error = user.is_valid()
 
-        if valid is None:
+        if valid:
             try:
                 user_id = database.insert("INSERT INTO user (`email`, `password`) VALUES (%s, %s)",
                                  (user.email, generate_password_hash(user.password)))
