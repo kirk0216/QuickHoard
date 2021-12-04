@@ -10,9 +10,10 @@ def create_app():
     app.config['MYSQL_DATABASE_DB'] = 'qh'
     app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 
-    from . import auth, budget
+    from . import auth, budget, transaction
     app.register_blueprint(auth.bp)
     app.register_blueprint(budget.bp)
+    app.register_blueprint(transaction.bp)
     app.add_url_rule('/', endpoint='index')
 
     return app

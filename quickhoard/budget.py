@@ -23,10 +23,10 @@ class Budget:
         self.categories.clear()
 
         for row in result:
-            if self.income is None:
+            if self.income is None and 'income' in row:
                 self.income = row['income']
 
-            if self.expense is None:
+            if self.expense is None and 'expense' in row:
                 self.expense = row['expense']
 
             category = Category()

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Transactions for {{ budget.month }} {{ budget.year }}</h1>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr class="table-primary">
+                <th>Date</th>
+                <th>Recipient</th>
+                <th>Category</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% if transactions %}
+                {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.date }}</td>
+                        <td>{{ transaction.recipient }}</td>
+                        <td>{{ transaction.category }}</td>
+                        <td>${{ transaction.amount|default('0.00', True) }}</td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>
+
+    <h1>Add Transaction</h1>
+    <div class="container-fluid">
+        <form action="{{ url_for('transaction.add_transaction') }}" method="post">
+            <div class="row mb-3">
+                <div class="col">
+                    <input type="date" class="form-control" id="date" name="date" placeholder="Date">
+                </div>
+
+                <div class="col">
+                    <input type="text" class="form-control" id="recipient" name="recipient" placeholder="Recipient">
+                </div>
+
+                <div class="col">
+                    <select class="form-select" name="category_id">
+                        {% if categories %}
+                            {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+
+                <div class="col">
+                    <div class="input-group">
+                        <span class="input-group-text" id="amount_addon">$</span>
+                        <input type="text" class="form-control" id="amount" name="amount" placeholder="Amount">
+                    </div>
+                </div>
+
+                <div class="col-1 d-flex justify-content-center">
+                    <button type="submit" class="btn btn-primary" aria-label="Add Transaction">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
