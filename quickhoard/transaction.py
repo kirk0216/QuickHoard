@@ -76,7 +76,6 @@ def get_categories(db, user_id):
 
     sql = (
         'SELECT * FROM category c '
-        'LEFT JOIN transaction t ON t.category_id = c.id '
         'WHERE c.user_id = %s;'
     )
 
@@ -123,17 +122,19 @@ def edit_transactions():
     database = Database()
     database.open()
 
+    categories = get_categories(database, user_id)
+
     if request.method == 'POST':
         transaction = Transaction()
         transaction.parse(request.form)
 
         sql = (
             'UPDATE transaction SET '
-            'date = %s, recipient = %s, amount = %s '
+            'date = %s, recipient = %s, amount = %s, category_id = %s '
             'WHERE id = %s;'
         )
 
-        database.execute(sql, (transaction.date, transaction.recipient, transaction.amount, transaction.id))
+        database.execute(sql, (transaction.date, transaction.recipient, transaction.amount, transaction.category_id, transaction.id))
         database.commit()
 
         return redirect(url_for('transaction.index'))
@@ -159,7 +160,7 @@ def edit_transactions():
     from calendar import month_name
     budget = {'year': date.today().year, 'month': month_name[date.today().month]}
 
-    return render_template('transactions_edit.html', budget=budget, transactions=transactions)
+    return render_template('transactions_edit.html', budget=budget, categories=categories, transactions=transactions)
 
 
 @bp.route('/delete', methods=('POST',))

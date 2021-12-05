@@ -20,10 +20,20 @@
                     <form action="{{ url_for('transaction.edit_transactions') }}" method="post">
                     <input type="hidden" name="id" value="{{ transaction.id }}">
                         <tr>
-                            <td><input type="date" value="{{ transaction.date }}" name="date"></td>
-                            <td><input type="text" value="{{ transaction.recipient }}" name="recipient"></td>
-                            <td><input type="text" value="{{ transaction.category }}" name="category_id"></td>
-                            <td><input type="number" value="{{ transaction.amount|default('0.00', True) }}" name="amount" step="0.01"></td>
+                            <td class="align-middle"><input type="date" value="{{ transaction.date }}" name="date"></td>
+                            <td class="align-middle"><input type="text" value="{{ transaction.recipient }}" name="recipient"></td>
+                            <td>
+                                <select class="form-select" name="category_id">
+                                    {% for category in categories %}
+                                        {% if category.id == transaction.category_id %}
+                                            <option value="{{ category.id }}" selected>{{ category.name }}</option>
+                                        {% else %}
+                                            <option value="{{ category.id }}">{{ category.name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td class="align-middle"><input type="number" value="{{ transaction.amount|default('0.00', True) }}" name="amount" step="0.01"></td>
 
                             <td class="text-center">
                                 <input type="submit" class="btn btn-danger" formaction="{{ url_for('transaction.delete') }}" value="Delete">
