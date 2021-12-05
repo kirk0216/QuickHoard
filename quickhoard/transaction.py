@@ -8,6 +8,7 @@ bp = Blueprint('transaction', __name__, url_prefix='/transaction')
 
 class Transaction:
     def __init__(self, date=None, recipient=None, category_id=None, amount=None, category=None):
+        self.id = None
         self.date = date
         self.recipient = recipient
         self.category_id = category_id
@@ -15,6 +16,9 @@ class Transaction:
         self.amount = amount
 
     def parse(self, row):
+        if 'id' in row:
+            self.id = row['id']
+
         if 'date' in row:
             self.date = row['date']
 
@@ -107,3 +111,57 @@ def add_transaction():
         database.close()
 
     return redirect(url_for('transaction.index'))
+
+
+@bp.route('/edit', methods=('GET', 'POST'))
+def edit_transactions():
+    user_id = session.get('user_id')
+
+    if user_id is None:
+        return redirect(url_for('auth.login'))
+
+    database = Database()
+    database.open()
+
+    if request.method == 'POST':
+        transaction = Transaction()
+        transaction.parse(request.form)
+
+        sql = (
+            'UPDATE transaction SET '
+            'date = %s, recipient = %s, amount = %s '
+            'WHERE id = %s;'
+        )
+
+        database.execute(sql, (transaction.date, transaction.recipient, transaction.amount, transaction.id))
+        database.commit()
+
+        return redirect(url_for('transaction.index'))
+
+    transactions = []
+
+    sql = (
+        'SELECT t.id AS transaction_id, t.*, c.*, c.name as category FROM category c '
+        'JOIN transaction t ON t.category_id = c.id '
+        'WHERE c.user_id = %s AND MONTH(t.date) = %s '
+        'ORDER BY date;'
+    )
+
+    cursor = database.query(sql, (user_id, date.today().month))
+
+    for row in cursor:
+        transaction = Transaction()
+        transaction.parse(row)
+        transactions.append(transaction)
+
+    database.close()
+
+    from calendar import month_name
+    budget = {'year': date.today().year, 'month': month_name[date.today().month]}
+
+    return render_template('transactions_edit.html', budget=budget, transactions=transactions)
+
+
+@bp.route('/delete', methods=('POST',))
+def delete():
+    return 'Trying to delete a transaction?'

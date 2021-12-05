@@ -26,6 +26,10 @@
         </tbody>
     </table>
 
+    <div class="d-flex justify-content-end">
+        <a class="btn btn-primary" href="{{ url_for('transaction.edit_transactions') }}">Edit Transactions</a>
+    </div>
+
     <h1>Add Transaction</h1>
     <div class="container-fluid">
         <form action="{{ url_for('transaction.add_transaction') }}" method="post">
