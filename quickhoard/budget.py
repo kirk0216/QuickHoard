@@ -190,7 +190,7 @@ def edit_categories():
             database.execute(sql, (goal, goal_id))
             database.commit()
 
-            return redirect(url_for('budget.index'))
+            flash('Saved changes.', 'alert-success')
         else:
             flash(error, 'alert-danger')
 
@@ -237,4 +237,4 @@ def delete_category():
 
     flash(f'Deleted category.', 'alert-info')
 
-    return redirect(url_for('index'))
+    return redirect(url_for('budget.edit_categories'))
