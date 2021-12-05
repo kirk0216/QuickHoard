@@ -48,11 +48,11 @@ def index():
     sql = (
         'SELECT t.*, c.*, c.name as category FROM category c '
         'JOIN transaction t ON t.category_id = c.id '
-        'WHERE c.user_id = %s '
+        'WHERE c.user_id = %s AND MONTH(t.date) = %s '
         'ORDER BY date;'
     )
 
-    cursor = database.query(sql, user_id)
+    cursor = database.query(sql, (user_id, date.today().month))
 
     for row in cursor:
         transaction = Transaction()
