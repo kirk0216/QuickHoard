@@ -165,4 +165,25 @@ def edit_transactions():
 
 @bp.route('/delete', methods=('POST',))
 def delete():
-    return 'Trying to delete a transaction?'
+    user_id = session.get('user_id')
+
+    if user_id is None:
+        return redirect(url_for('auth.login'))
+
+    if request.method == 'POST':
+        database = Database()
+        database.open()
+
+        sql = (
+            'DELETE FROM transaction '
+            'WHERE id = %s;'
+        )
+
+        transaction_id = request.form['id']
+
+        database.execute(sql, transaction_id)
+        database.commit()
+
+        database.close()
+
+    return redirect(url_for('transaction.index'))
