@@ -39,6 +39,7 @@ class Category:
     def __init__(self, id=None, name=None, goal=None):
         self.id = id
         self.name = name or None
+        self.goal_id = None
         self.goal = goal or '0.00'
         self.spent = None
         self.remaining = None
@@ -67,6 +68,9 @@ class Category:
 
         if 'goal' in result:
             self.goal = result['goal']
+
+        if 'goal_id' in result:
+            self.goal_id = result['goal_id']
 
         if 'spent' in result:
             self.spent = result['spent']
@@ -150,45 +154,71 @@ def add_category():
     return redirect(url_for('index'))
 
 
-@bp.route('/category/<int:category_id>', methods=('GET', 'POST'))
-def view_category(category_id):
+@bp.route('/category/edit', methods=('GET', 'POST'))
+def edit_categories():
+    user_id = session.get('user_id')
+
     database = Database()
     database.open()
 
     if request.method == 'POST':
-        category = Category()
-        category.parse(request.form)
+        category_id = request.form['category_id'] if 'category_id' in request.form else None
+        name = request.form['name'] if 'name' in request.form else None
+        goal_id = request.form['goal_id'] if 'goal_id' in request.form else None
+        goal = request.form['goal'] if 'goal' in request.form else None
 
-        sql = 'UPDATE category SET name = %s WHERE id = %s;'
-        database.execute(sql, (category.name, category.id))
+        error = None
 
-        sql = 'UPDATE category_goal SET goal = %s WHERE id = %s;'
-        database.execute(sql, (category.goal, request.form['goal_id']))
-        database.commit()
+        if category_id is None or name is None or goal_id is None or goal is None:
+            error = 'Missing values.'
+        elif len(name) == 0:
+            error = 'Name cannot be blank.'
+        elif len(goal) == 0:
+            error = 'Amount cannot be blank.'
 
-        flash('Saved changes!', 'alert-success')
-        database.close()
+        if error is None:
+            sql = (
+                'UPDATE category SET name = %s WHERE id = %s;'
+            )
 
-        return redirect(url_for('budget.view_category', category_id=category.id))
+            database.execute(sql, (name, category_id))
+
+            sql = (
+                'UPDATE category_goal SET goal = %s WHERE id = %s;'
+            )
+
+            database.execute(sql, (goal, goal_id))
+            database.commit()
+
+            return redirect(url_for('budget.index'))
+        else:
+            flash(error, 'alert-danger')
+
 
     sql = (
         'SELECT c.id, c.name, cg.id AS goal_id, cg.goal FROM category c '
         'LEFT JOIN category_goal cg ON (cg.category_id = c.id AND cg.year = YEAR(CURDATE()) AND cg.month = MONTH(CURDATE())) '
-        'WHERE c.id = %s;'
+        'WHERE c.user_id = %s;'
     )
 
-    cursor = database.query(sql, category_id)
-    result = cursor.fetchone()
+    cursor = database.query(sql, user_id)
+    categories = []
 
-    category = Category()
-    category.parse(result)
+    for row in cursor:
+        category = Category()
+        category.parse(row)
+        categories.append(category)
+
     database.close()
 
-    return render_template('category.html', category=category, goal_id=result['goal_id'])
+    from calendar import month_name
+    budget = {'year': date.today().year, 'month': month_name[date.today().month]}
+
+    return render_template('category.html', budget=budget, categories=categories)
 
 
-@bp.route('/category/<int:category_id>/delete', methods=['POST'])
-def delete_category(category_id):
+@bp.route('/category/delete', methods=['POST'])
+def delete_category():
     user_id = session.get('user_id')
 
     if user_id is None:
@@ -198,6 +228,8 @@ def delete_category(category_id):
     database.open()
 
     sql = "DELETE FROM category WHERE id = %s;"
+    category_id = request.form['category_id']
+
     database.execute(sql, category_id)
     database.commit()
 

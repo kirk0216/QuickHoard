@@ -1,23 +1,34 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <form method="POST">
-        <input type="hidden" id="id" name="id" value="{{ category.id }}">
-        <input type="hidden" id="goal_id" name="goal_id" value="{{ goal_id }}">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr class="table-primary">
+                <th>Category</th>
+                <th>Goal</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
 
-        <div class="mb-3">
-            <label for="name" class="form-label">Name</label>
-            <input type="text" class="form-control" id="name" name="name" placeholder="Name" value="{{ category.name }}">
-        </div>
+        <tbody>
+            {% for category in categories %}
+                <form action="{{ url_for('budget.edit_categories') }}" method="post">
+                    <input type="hidden" name="category_id" value="{{ category.id }}">
+                    <input type="hidden" name="goal_id" value="{{ category.goal_id }}">
 
-        <div class="mb-3">
-            <label for="goal" class="form-label">Goal</label>
-            <input type="number" class="form-control" id="goal" name="goal" placeholder="Goal" value="{{ category.goal }}" step="0.01">
-        </div>
-
-        <div class="mb-3">
-            <button type="submit" formaction="{{ url_for('budget.view_category', category_id=category.id) }}" class="btn btn-primary btn-lg">Submit</button>
-            <button type="submit" formaction="{{ url_for('budget.delete_category', category_id=category.id) }}" class="btn btn-danger">Delete</button>
-        </div>
-    </form>
+                    <tr>
+                        <td class="align-middle">
+                            <input type="text" value="{{ category.name }}" name="name">
+                        </td>
+                        <td class="align-middle">
+                            <input type="number" value="{{ category.goal }}" step="0.01" name="goal">
+                        </td>
+                        <td><input type="submit" class="btn btn-danger" formaction="{{ url_for('budget.delete_category') }}" value="Delete"></td>
+                        <td><input type="submit" class="btn btn-primary" value="Save Changes"></td>
+                    </tr>
+                </form>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}
