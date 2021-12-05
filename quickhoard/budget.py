@@ -88,17 +88,27 @@ def index():
     sql = (
         'SELECT c.id, c.name, cg.goal, '
         '	COALESCE(ABS(SUM(t.amount)), 0) AS spent, '
-        '   COALESCE(cg.goal - ABS(SUM(t.amount)), cg.goal) AS remaining, '
-        '	(SELECT COALESCE(ABS(SUM(amount)), 0) FROM `transaction` WHERE Amount < 0 AND category_id = c.id) AS expense, '
-        '   (SELECT COALESCE(ABS(SUM(amount)), 0) FROM `transaction` WHERE Amount > 0 AND category_id = c.id) AS income '
+        '	COALESCE(cg.goal - ABS(SUM(t.amount)), cg.goal) AS remaining, '
+        '	(SELECT COALESCE(ABS(SUM(amount)), 0) '
+        '		FROM transaction '
+        '        WHERE Amount < 0 '
+        '			AND MONTH(date) = %(date)s '
+        '			AND category_id in (SELECT id FROM category WHERE user_id = 2) '
+        '	) AS expense, '
+        '	(SELECT COALESCE(ABS(SUM(amount)), 0) '
+        '        FROM transaction '
+        '        WHERE Amount > 0 '
+        '			AND MONTH(date) = %(date)s '
+        '			AND category_id in (SELECT id FROM category WHERE user_id = 2) '
+        '	) AS income '
         'FROM category c '
         'LEFT JOIN category_goal cg ON cg.category_id = c.id '
-        'LEFT JOIN `transaction` t ON (t.category_Id = c.id AND MONTH(t.date) = cg.month) '
-        'WHERE c.user_id = %s '
+        'LEFT JOIN transaction t ON (t.category_Id = c.id AND MONTH(t.date) = cg.month) '
+        'WHERE c.user_id = %(user_id)s AND cg.month = %(date)s '
         'GROUP BY c.id;'
     )
 
-    cursor = database.query(sql, user_id)
+    cursor = database.query(sql, {"user_id": user_id, "date": date.today().month })
 
     budget = Budget(date.today().year, date.today().month)
     budget.parse(cursor.fetchall())
