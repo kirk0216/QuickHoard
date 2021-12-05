@@ -7,7 +7,7 @@ bp = Blueprint('transaction', __name__, url_prefix='/transaction')
 
 
 class Transaction:
-    def __init__(self, date=None, recipient=None, category_id=None, category=None, amount=None):
+    def __init__(self, date=None, recipient=None, category_id=None, amount=None, category=None):
         self.date = date
         self.recipient = recipient
         self.category_id = category_id
@@ -91,5 +91,18 @@ def add_transaction():
     if request.method == 'POST':
         transaction = Transaction(request.form['date'], request.form['recipient'], request.form['category_id'],
                                   request.form['amount'])
+
+        database = Database()
+        database.open()
+
+        sql = (
+            'INSERT INTO transaction '
+            '(recipient, date, amount, category_id) '
+            'VALUES (%s, %s, %s, %s);'
+        )
+
+        database.insert(sql, (transaction.recipient, transaction.date, transaction.amount, transaction.category_id))
+
+        database.close()
 
     return redirect(url_for('transaction.index'))
