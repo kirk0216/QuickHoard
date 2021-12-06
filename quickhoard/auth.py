@@ -1,5 +1,5 @@
 import pymysql.err
-import re
+import re, uuid
 from flask import Blueprint, request, render_template, session, redirect, url_for, flash
 from werkzeug.security import check_password_hash, generate_password_hash
 from quickhoard.db import Database
@@ -129,3 +129,53 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('index'))
+
+
+@bp.route('/resetpassword/', methods=('GET', 'POST'))
+@bp.route('/resetpassword/<code>', methods=('GET', 'POST'))
+def reset_password(code=None):
+    if code is None:
+        if request.method == 'POST':
+            email = request.form['email'] if 'email' in request.form else None
+
+            sql = (
+                'UPDATE user SET reset_code = %s WHERE email = %s;'
+            )
+
+            database = Database()
+            database.open()
+
+            reset_code = uuid.uuid4()
+
+            database.execute(sql, (reset_code, email))
+            database.commit()
+
+            flash(f'Your reset code is %s' % reset_code, 'alert-info')
+
+            database.close()
+
+        return render_template('resetpassword.html', request_code=True)
+    else:
+        if request.method == 'POST':
+            password = request.form['password'] if 'password' in request.form else None
+            confirm_password = request.form['confirm_password'] if 'confirm_password' in request.form else None
+
+            if password is not None and confirm_password is not None and password == confirm_password:
+                hash_password = generate_password_hash(password)
+
+                database = Database()
+                database.open()
+
+                sql = (
+                    'UPDATE user SET password = %s, failed_login = 0, reset_code = NULL '
+                    'WHERE reset_code = %s;'
+                )
+
+                database.execute(sql, (hash_password, code))
+                database.commit()
+
+                database.close()
+
+                return redirect(url_for('index'))
+
+        return render_template('resetpassword.html', request_code=False)

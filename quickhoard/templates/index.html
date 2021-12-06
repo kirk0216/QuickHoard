@@ -15,6 +15,7 @@
         <div class="d-grid gap-2">
             <button type="submit" formaction="/login" class="btn btn-primary btn-lg">Submit</button>
             <button type="submit" formaction="/register" class="btn btn-secondary">Register</button>
+            <a class="btn btn-outline-primary" href="{{ url_for('auth.reset_password') }}">Reset Password</a>
         </div>
     </form>
 {% endblock %}
