@@ -12,6 +12,8 @@ class User:
         self.id = None
         self.email = email
         self.password = password
+        self.failed_login = 0
+        self.last_login = None
 
     def parse(self, result):
         if result is None:
@@ -20,6 +22,8 @@ class User:
         self.id = result['id']
         self.email = result['email']
         self.password = result['password']
+        self.failed_login = result['failed_login']
+        self.last_login = result['last_login']
 
     def is_valid(self):
         error = None
@@ -78,25 +82,45 @@ def login():
         database = Database()
         database.open()
 
-        result = database.query("SELECT id, email, password FROM user WHERE email = %s;", email)
+        result = database.query("SELECT id, email, password, failed_login, last_login FROM user WHERE email = %s;", email)
 
         user = User()
         user.parse(result.fetchone())
 
-        database.close()
-
         error = None
 
-        if user is None or not check_password_hash(user.password or '', password):
+        if user is None or user.failed_login >= 5:
             error = 'Invalid credentials. Please try again.'
+
+        if not check_password_hash(user.password or '', password):
+            error = 'Invalid credentials. Please try again.'
+
+            sql = (
+                'UPDATE user SET '
+                'failed_login = %s WHERE email = %s;'
+            )
+
+            database.execute(sql, (user.failed_login + 1, email))
+            database.commit()
 
         if error is None:
             session.clear()
             session['user_id'] = user.id
 
+            sql = (
+                'UPDATE user SET failed_login = 0, last_login = CURRENT_TIMESTAMP WHERE email = %s;'
+            )
+
+            database.execute(sql, email)
+            database.commit()
+
+            database.close()
+
             return redirect(url_for('index'))
 
         flash(error, 'alert-danger')
+
+        database.close()
 
     return render_template('index.html')
 
