@@ -8,6 +8,7 @@ from quickhoard.model.user import User
 bp = Blueprint('auth', __name__)
 
 
+# Http handler for registering a new user account
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
@@ -37,6 +38,7 @@ def register():
     return render_template('index.html')
 
 
+# Http handler for logging in to an existing user account
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
     if request.method == 'POST':
@@ -56,6 +58,7 @@ def login():
         if user is None or user.failed_login >= 5:
             error = 'Invalid credentials. Please try again.'
 
+        # Check that the password provided by the user matches the password for the user account.
         if not check_password_hash(user.password or '', password):
             error = 'Invalid credentials. Please try again.'
 
@@ -89,15 +92,24 @@ def login():
     return render_template('index.html')
 
 
+# Http handler for logging out of a user account
 @bp.route('/logout')
 def logout():
+    # Just clear the session and redirect the user back to the main page
     session.clear()
     return redirect(url_for('index'))
 
 
+# Http handler for resetting a user password
+# code is a randomly generated code the user must provide to reset their password
 @bp.route('/resetpassword/', methods=('GET', 'POST'))
 @bp.route('/resetpassword/<code>', methods=('GET', 'POST'))
 def reset_password(code=None):
+    # Resetting a password is a two step process:
+    # 1. Request a password reset, which generates a code the user must provide to perform the actual reset.
+    # 2. Enter the code and a new password, to update the password
+
+    # Step 1: Requesting a code
     if code is None:
         if request.method == 'POST':
             email = request.form['email'] if 'email' in request.form else None
@@ -114,11 +126,15 @@ def reset_password(code=None):
             database.execute(sql, (reset_code, email))
             database.commit()
 
+            # In a real application, this would be emailed or SMSed to the user.
+            # To avoid incurring the costs associated with using an email or SMS service, the code is generated and
+            #   displayed in a pop-up message instead.
             flash(f'Your reset code is %s' % reset_code, 'alert-info')
 
             database.close()
 
         return render_template('resetpassword.html', request_code=True)
+    # Step 2: Submitting the password change request with the generated code
     else:
         if request.method == 'POST':
             password = request.form['password'] if 'password' in request.form else None

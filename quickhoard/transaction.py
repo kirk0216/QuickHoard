@@ -7,6 +7,7 @@ from quickhoard.model.transaction import Transaction
 bp = Blueprint('transaction', __name__, url_prefix='/transaction')
 
 
+# Displays details about the transactions in the user's current budget.
 @bp.route('/')
 def index():
     user_id = session.get('user_id')
@@ -43,6 +44,7 @@ def index():
     return render_template('transactions.html', budget=budget, categories=categories, transactions=transactions)
 
 
+# Returns a list of all categories the user has created.
 def get_categories(db, user_id):
     categories = []
 
@@ -60,6 +62,8 @@ def get_categories(db, user_id):
 
     return categories
 
+
+# Http handler for adding a new transaction
 @bp.route('/add', methods=('GET', 'POST'))
 def add_transaction():
     transaction = None
@@ -84,6 +88,7 @@ def add_transaction():
     return redirect(url_for('transaction.index'))
 
 
+# Http handler for editing transactions
 @bp.route('/edit', methods=('GET', 'POST'))
 def edit_transactions():
     user_id = session.get('user_id')
@@ -135,6 +140,7 @@ def edit_transactions():
     return render_template('transactions_edit.html', budget=budget, categories=categories, transactions=transactions)
 
 
+# Http handler for deleting a transaction
 @bp.route('/delete', methods=('POST',))
 def delete():
     user_id = session.get('user_id')

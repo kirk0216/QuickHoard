@@ -1,5 +1,7 @@
 from quickhoard.model.category import Category
 
+
+# Contains information about a budget
 class Budget:
     income = None
     expense = None
@@ -11,6 +13,7 @@ class Budget:
         from calendar import month_name
         self.month = month_name[month]
 
+    # Parses a budget from a dictionary object.
     def parse(self, result):
         if result is None:
             return

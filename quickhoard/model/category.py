@@ -7,6 +7,10 @@ class Category:
         self.spent = None
         self.remaining = None
 
+    # Confirms that the category is valid:
+    # - Returns a tuple that contains:
+    #   - True if the category is valid, False if not
+    #   - If the category is invalid, an error message explaining why.
     def is_valid(self):
         error = None
 
@@ -19,6 +23,7 @@ class Category:
 
         return error is None, error
 
+    # Parses a category from a dictionary object.
     def parse(self, result):
         if result is None:
             return

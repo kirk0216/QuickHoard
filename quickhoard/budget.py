@@ -7,10 +7,12 @@ from datetime import date
 bp = Blueprint('budget', __name__)
 
 
+# Http handler for the main page
 @bp.route('/')
 def index():
     user_id = session.get('user_id')
 
+    # If the user is not logged in, they are redirected to a login page
     if user_id is None:
         return redirect(url_for('auth.login'))
 
@@ -50,10 +52,12 @@ def index():
     return render_template('dashboard.html', budget=budget)
 
 
+# Http handler for adding a new category
 @bp.route('/category/add', methods=('GET', 'POST'))
 def add_category():
     user_id = session.get('user_id')
 
+    # If the user is not logged in, they are redirected to a login page
     if user_id is None:
         return redirect(url_for('auth.login'))
 
@@ -82,9 +86,14 @@ def add_category():
     return redirect(url_for('index'))
 
 
+# Http handler for editing a category
 @bp.route('/category/edit', methods=('GET', 'POST'))
 def edit_categories():
     user_id = session.get('user_id')
+
+    # If the user is not logged in, they are redirected to a login page
+    if user_id is None:
+        return redirect(url_for('auth.login'))
 
     database = Database()
     database.open()
@@ -144,11 +153,12 @@ def edit_categories():
 
     return render_template('category.html', budget=budget, categories=categories)
 
-
+# Http handler for deleting a category
 @bp.route('/category/delete', methods=['POST'])
 def delete_category():
     user_id = session.get('user_id')
 
+    # If the user is not logged in, they are redirected to a login page
     if user_id is None:
         return redirect(url_for('auth.login'))
 

@@ -7,6 +7,7 @@ class Transaction:
         self.category = category
         self.amount = amount
 
+    # Parses a transaction from a dictionary object.
     def parse(self, row):
         if 'id' in row:
             self.id = row['id']
