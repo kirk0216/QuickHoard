@@ -16,7 +16,7 @@ class Category:
 
         if self.name is None:
             error = 'Please enter a name for your category.'
-        elif not self.goal.isnumeric():
+        elif self.goal is str and self.goal.isnumeric():
             error = 'Category goal must be a number.'
         elif float(self.goal) < 0:
             error = 'Category goal must be a positive number.'

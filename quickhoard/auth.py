@@ -126,12 +126,12 @@ def reset_password(code=None):
             database.execute(sql, (reset_code, email))
             database.commit()
 
+            database.close()
+
             # In a real application, this would be emailed or SMSed to the user.
             # To avoid incurring the costs associated with using an email or SMS service, the code is generated and
             #   displayed in a pop-up message instead.
             flash(f'Your reset code is %s' % reset_code, 'alert-info')
-
-            database.close()
 
         return render_template('resetpassword.html', request_code=True)
     # Step 2: Submitting the password change request with the generated code

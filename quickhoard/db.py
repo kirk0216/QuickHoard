@@ -24,7 +24,7 @@ class Database(object):
     # Executes a SQL statement that does not return any information.
     # - sql: The parameterized SQL statement to execute.
     # - args: A dictionary object that contains parameter values.
-    def execute(self, sql, args):
+    def execute(self, sql, args=None):
         self.conn.get_db().cursor().execute(sql, args)
 
     # Executes an insert SQL statement and returns the ID for the inserted object.
@@ -42,7 +42,7 @@ class Database(object):
     # - sql: The parameterized SQL statement to execute.
     # - args: A dictionary object that contains parameter values.
     # Returns: A cursor object containing the SQL query results.
-    def query(self, sql, args):
+    def query(self, sql, args=None):
         cursor = self.conn.get_db().cursor(pymysql.cursors.DictCursor)
         cursor.execute(sql, args)
         return cursor

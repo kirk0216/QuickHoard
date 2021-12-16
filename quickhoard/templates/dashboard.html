@@ -27,7 +27,7 @@
             <tr class="table-secondary">
                 <th>Balance</th>
                 {% if budget and budget.income and budget.expense %}
-                    <td>${{ budget.income - budget.expense }}</td>
+                    <td>${{ budget.income|default(0) - budget.expense|default(0) }}</td>
                 {% else %}
                     <td>$0.00</td>
                 {% endif %}

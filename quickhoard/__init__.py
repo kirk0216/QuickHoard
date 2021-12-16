@@ -1,7 +1,7 @@
 from flask import Flask
 
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
     app.config.from_mapping(SECRET_KEY='dev')
 
@@ -9,6 +9,9 @@ def create_app():
     app.config['MYSQL_DATABASE_PASSWORD'] = 'quickpassword'
     app.config['MYSQL_DATABASE_DB'] = 'qh'
     app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+
+    if test_config is not None:
+        app.config.from_mapping(test_config)
 
     from . import auth, budget, transaction
     app.register_blueprint(auth.bp)

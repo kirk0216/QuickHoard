@@ -5,19 +5,20 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
 -- -----------------------------------------------------
--- Schema qh
+-- Schema qhtest
 -- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `qh` DEFAULT CHARACTER SET utf8 ;
-USE `qh` ;
+DROP SCHEMA IF EXISTS `qhtest`;
+CREATE SCHEMA IF NOT EXISTS `qhtest` DEFAULT CHARACTER SET utf8 ;
+USE `qhtest` ;
 
 -- -----------------------------------------------------
--- Table `qh`.`user`
+-- Table `qhtest`.`user`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `qh`.`user` (
+CREATE TABLE IF NOT EXISTS `qhtest`.`user` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `email` VARCHAR(50) NOT NULL,
   `password` VARCHAR(102) NOT NULL,
-  `failed_login` INT,
+  `failed_login` INT NOT NULL DEFAULT 0,
   `last_login` DATETIME,
   `reset_code` VARCHAR(45),
   PRIMARY KEY (`id`),
@@ -27,9 +28,9 @@ DEFAULT CHARACTER SET = utf8mb3;
 
 
 -- -----------------------------------------------------
--- Table `qh`.`category`
+-- Table `qhtest`.`category`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `qh`.`category` (
+CREATE TABLE IF NOT EXISTS `qhtest`.`category` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(50) NOT NULL,
   `user_id` INT NOT NULL,
@@ -37,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `qh`.`category` (
   INDEX `fk_category_user1_idx` (`user_id` ASC) VISIBLE,
   CONSTRAINT `fk_category_user1`
     FOREIGN KEY (`user_id`)
-    REFERENCES `qh`.`user` (`id`)
+    REFERENCES `qhtest`.`user` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -45,9 +46,9 @@ DEFAULT CHARACTER SET = utf8mb3;
 
 
 -- -----------------------------------------------------
--- Table `qh`.`transaction`
+-- Table `qhtest`.`transaction`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `qh`.`transaction` (
+CREATE TABLE IF NOT EXISTS `qhtest`.`transaction` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `recipient` VARCHAR(45) NOT NULL,
   `date` DATE NOT NULL,
@@ -57,15 +58,15 @@ CREATE TABLE IF NOT EXISTS `qh`.`transaction` (
   INDEX `fk_Transaction_Category1_idx` (`category_id` ASC) VISIBLE,
   CONSTRAINT `fk_Transaction_Category1`
     FOREIGN KEY (`category_id`)
-    REFERENCES `qh`.`category` (`id`))
+    REFERENCES `qhtest`.`category` (`id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb3;
 
 
 -- -----------------------------------------------------
--- Table `qh`.`category_goal`
+-- Table `qhtest`.`category_goal`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `qh`.`category_goal` (
+CREATE TABLE IF NOT EXISTS `qhtest`.`category_goal` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `goal` DECIMAL(10,2) NOT NULL,
   `year` INT NOT NULL,
@@ -75,7 +76,7 @@ CREATE TABLE IF NOT EXISTS `qh`.`category_goal` (
   INDEX `fk_table1_category1_idx` (`category_id` ASC) VISIBLE,
   CONSTRAINT `fk_table1_category1`
     FOREIGN KEY (`category_id`)
-    REFERENCES `qh`.`category` (`id`)
+    REFERENCES `qhtest`.`category` (`id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
